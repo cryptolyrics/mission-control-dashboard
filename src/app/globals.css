@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0f1115;
+  --card: #171a21;
+  --card-hover: #1f2330;
+  --primary: #8be9fd;
+  --success: #50fa7b;
+  --warning: #ffb86c;
+  --error: #ff5555;
+  --text-primary: #f2f4f8;
+  --text-secondary: #7f85a3;
+  --highlight: #ff79c6;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+}
