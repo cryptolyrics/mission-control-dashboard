@@ -19,6 +19,10 @@ RELAY_AUTH_TOKEN=change-me RELAY_PORT=8787 node server.mjs
 
 All require header: `x-relay-token: <RELAY_AUTH_TOKEN>` (if token is set).
 
+Usage persistence:
+- Relay writes per-agent cumulative usage to `usage-store.json` in relay dir.
+- Override path with `USAGE_STORE_PATH=/absolute/path/usage-store.json`.
+
 ## Vercel env vars
 
 - `RELAY_BASE_URL=https://<your-relay-host>`

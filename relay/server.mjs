@@ -1,9 +1,12 @@
 import http from 'node:http';
 import { execFile } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const PORT = Number(process.env.RELAY_PORT || 8787);
 const TOKEN = process.env.RELAY_AUTH_TOKEN || '';
 const OPENCLAW_BIN = process.env.OPENCLAW_BIN || 'openclaw';
+const USAGE_STORE = process.env.USAGE_STORE_PATH || path.join(process.cwd(), 'usage-store.json');
 
 function send(res, status, data) {
   res.writeHead(status, { 'content-type': 'application/json' });
@@ -38,6 +41,27 @@ function gatewayCall(method, params = {}) {
   });
 }
 
+function loadUsageStore() {
+  try {
+    const raw = fs.readFileSync(USAGE_STORE, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && parsed.agents) return parsed;
+  } catch {}
+  return { updatedAt: Date.now(), agents: {} };
+}
+
+function saveUsageStore(store) {
+  fs.writeFileSync(USAGE_STORE, JSON.stringify(store, null, 2));
+}
+
+function modelRates(model = '') {
+  const m = String(model).toLowerCase();
+  if (m.includes('minimax')) return { inRate: 15, outRate: 60 };
+  if (m.includes('gpt-5-mini')) return { inRate: 0.25, outRate: 2 };
+  if (m.includes('gpt-5')) return { inRate: 1.25, outRate: 10 };
+  return { inRate: 0, outRate: 0 };
+}
+
 const server = http.createServer(async (req, res) => {
   if (!authed(req)) return send(res, 401, { ok: false, error: 'unauthorized' });
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
@@ -64,29 +88,69 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && url.pathname === '/usage') {
       const status = await gatewayCall('status', {});
-      const rows = (status?.sessions?.recent || []).map((r) => {
-        const model = String(r.model || '');
-        const inTok = Number(r.inputTokens || 0);
-        const outTok = Number(r.outputTokens || 0);
-        let inRate = 0;
-        let outRate = 0;
-        if (model.toLowerCase().includes('minimax')) { inRate = 15; outRate = 60; }
-        else if (model.toLowerCase().includes('gpt-5-mini')) { inRate = 0.25; outRate = 2; }
-        else if (model.toLowerCase().includes('gpt-5')) { inRate = 1.25; outRate = 10; }
-        const estCostUsd = (inTok / 1_000_000) * inRate + (outTok / 1_000_000) * outRate;
+      const recent = status?.sessions?.recent || [];
+      const agentIds = (status?.heartbeat?.agents || []).map((a) => a.agentId);
+
+      const store = loadUsageStore();
+      const now = Date.now();
+
+      for (const agentId of agentIds) {
+        const r = recent.find((x) => x.agentId === agentId);
+        const currIn = Number(r?.inputTokens || 0);
+        const currOut = Number(r?.outputTokens || 0);
+        const model = r?.model || store.agents?.[agentId]?.model || null;
+        const { inRate, outRate } = modelRates(model || '');
+
+        const prev = store.agents[agentId] || {
+          agentId,
+          model,
+          lastInputTokens: 0,
+          lastOutputTokens: 0,
+          cumulativeInputTokens: 0,
+          cumulativeOutputTokens: 0,
+          cumulativeCostUsd: 0,
+          percentUsed: null,
+          updatedAt: null,
+        };
+
+        const deltaIn = currIn >= (prev.lastInputTokens || 0) ? currIn - (prev.lastInputTokens || 0) : currIn;
+        const deltaOut = currOut >= (prev.lastOutputTokens || 0) ? currOut - (prev.lastOutputTokens || 0) : currOut;
+        const deltaCost = (deltaIn / 1_000_000) * inRate + (deltaOut / 1_000_000) * outRate;
+
+        store.agents[agentId] = {
+          ...prev,
+          model,
+          lastInputTokens: currIn,
+          lastOutputTokens: currOut,
+          cumulativeInputTokens: Number(prev.cumulativeInputTokens || 0) + deltaIn,
+          cumulativeOutputTokens: Number(prev.cumulativeOutputTokens || 0) + deltaOut,
+          cumulativeCostUsd: Number(prev.cumulativeCostUsd || 0) + deltaCost,
+          percentUsed: r?.percentUsed ?? prev.percentUsed ?? null,
+          updatedAt: r?.updatedAt || now,
+        };
+      }
+
+      store.updatedAt = now;
+      saveUsageStore(store);
+
+      const rows = agentIds.map((agentId) => {
+        const a = store.agents[agentId] || { agentId };
+        const inputTokens = Number(a.cumulativeInputTokens || 0);
+        const outputTokens = Number(a.cumulativeOutputTokens || 0);
         return {
-          agentId: r.agentId,
-          model: r.model || null,
-          inputTokens: inTok,
-          outputTokens: outTok,
-          totalTokens: Number(r.totalTokens || inTok + outTok),
-          percentUsed: r.percentUsed ?? null,
-          updatedAt: r.updatedAt || null,
-          estCostUsd,
+          agentId,
+          model: a.model || null,
+          inputTokens,
+          outputTokens,
+          totalTokens: inputTokens + outputTokens,
+          percentUsed: a.percentUsed ?? null,
+          updatedAt: a.updatedAt || null,
+          estCostUsd: Number(a.cumulativeCostUsd || 0),
         };
       });
+
       rows.sort((a, b) => b.totalTokens - a.totalTokens);
-      return send(res, 200, { ok: true, rows, source: 'openclaw gateway call status' });
+      return send(res, 200, { ok: true, rows, source: 'relay usage-store.json', storePath: USAGE_STORE, updatedAt: store.updatedAt });
     }
 
     const pauseMatch = url.pathname.match(/^\/agents\/([^/]+)\/pause$/);
