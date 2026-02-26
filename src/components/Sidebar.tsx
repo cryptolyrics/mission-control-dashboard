@@ -7,6 +7,7 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: "🏠" },
   { href: "/agents", label: "Agents", icon: "🤖" },
   { href: "/tasks", label: "Tasks", icon: "📋" },
+  { href: "/coach", label: "Coach", icon: "⏰" },
   { href: "/analytics", label: "Analytics", icon: "📊" },
   { href: "/settings", label: "Settings", icon: "⚙️" },
 ];
@@ -46,8 +47,9 @@ export default function Sidebar() {
 
       <div className="p-4 border-t border-white/5">
         <div className="text-xs text-text-secondary space-y-1">
-          <p>Active Agents: <span className="text-success">4</span></p>
-          <p>Running Tasks: <span className="text-warning">2</span></p>
+          <p>Active Agents: <span className="text-success">6</span></p>
+          <p>Running Tasks: <span className="text-warning">12</span></p>
+          <p className="pt-2 border-t border-white/5 mt-2">⌘K Command Palette</p>
         </div>
       </div>
     </aside>

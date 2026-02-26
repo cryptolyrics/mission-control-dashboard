@@ -2,9 +2,12 @@ type Agent = {
   id: string;
   name: string;
   status: "online" | "busy" | "offline";
+  role: string;
   currentTask: string | null;
   lastActivity: string;
   avatar: string;
+  model: string;
+  workspace: string;
 };
 
 interface AgentCardProps {
@@ -32,7 +35,7 @@ const statusText = {
 export default function AgentCard({ agent }: AgentCardProps) {
   return (
     <div
-      className={`bg-card rounded-xl p-4 border border-white/5 border-l-4 ${statusColors[agent.status]} hover:border-white/10 transition-all`}
+      className={`bg-card rounded-xl p-4 border border-white/10 border-l-4 ${statusColors[agent.status]} hover:border-white/20 transition-all`}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
@@ -41,7 +44,8 @@ export default function AgentCard({ agent }: AgentCardProps) {
           </div>
           <div>
             <h3 className="font-semibold">{agent.name}</h3>
-            <div className="flex items-center gap-1.5">
+            <p className="text-xs text-text-secondary">{agent.role}</p>
+            <div className="flex items-center gap-1.5 mt-1">
               <span className={`w-2 h-2 rounded-full ${statusDot[agent.status]}`}></span>
               <span className="text-xs text-text-secondary">{statusText[agent.status]}</span>
             </div>
@@ -62,9 +66,11 @@ export default function AgentCard({ agent }: AgentCardProps) {
       <div className="space-y-2">
         <div>
           <p className="text-xs text-text-secondary">Current Task</p>
-          <p className="text-sm font-medium truncate">
-            {agent.currentTask || "No active task"}
-          </p>
+          <p className="text-sm font-medium truncate">{agent.currentTask || "No active task"}</p>
+        </div>
+        <div className="flex items-center justify-between text-xs text-text-secondary">
+          <span>{agent.model}</span>
+          <span>{agent.workspace}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-xs text-text-secondary">Last activity: {agent.lastActivity}</span>

@@ -8,6 +8,7 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: "🏠" },
   { href: "/agents", label: "Agents", icon: "🤖" },
   { href: "/tasks", label: "Tasks", icon: "📋" },
+  { href: "/coach", label: "Coach", icon: "⏰" },
   { href: "/analytics", label: "Analytics", icon: "📊" },
   { href: "/settings", label: "Settings", icon: "⚙️" },
 ];
@@ -55,8 +56,8 @@ export default function MobileNav() {
           </nav>
           <div className="p-4 border-t border-white/5">
             <p className="text-xs text-text-secondary">
-              Active: <span className="text-success">4</span> | Tasks:{" "}
-              <span className="text-warning">2</span>
+              Active: <span className="text-success">6</span> | Tasks:{" "}
+              <span className="text-warning">12</span>
             </p>
           </div>
         </div>
