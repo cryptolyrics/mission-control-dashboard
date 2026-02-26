@@ -15,6 +15,7 @@ RELAY_AUTH_TOKEN=change-me RELAY_PORT=8787 node server.mjs
 - `POST /agents/:id/pause`
 - `GET /agents/:id/logs`
 - `POST /tasks`
+- `GET /usage`
 
 All require header: `x-relay-token: <RELAY_AUTH_TOKEN>` (if token is set).
 

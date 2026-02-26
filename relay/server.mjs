@@ -62,6 +62,33 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { ok: true, agents });
     }
 
+    if (req.method === 'GET' && url.pathname === '/usage') {
+      const status = await gatewayCall('status', {});
+      const rows = (status?.sessions?.recent || []).map((r) => {
+        const model = String(r.model || '');
+        const inTok = Number(r.inputTokens || 0);
+        const outTok = Number(r.outputTokens || 0);
+        let inRate = 0;
+        let outRate = 0;
+        if (model.toLowerCase().includes('minimax')) { inRate = 15; outRate = 60; }
+        else if (model.toLowerCase().includes('gpt-5-mini')) { inRate = 0.25; outRate = 2; }
+        else if (model.toLowerCase().includes('gpt-5')) { inRate = 1.25; outRate = 10; }
+        const estCostUsd = (inTok / 1_000_000) * inRate + (outTok / 1_000_000) * outRate;
+        return {
+          agentId: r.agentId,
+          model: r.model || null,
+          inputTokens: inTok,
+          outputTokens: outTok,
+          totalTokens: Number(r.totalTokens || inTok + outTok),
+          percentUsed: r.percentUsed ?? null,
+          updatedAt: r.updatedAt || null,
+          estCostUsd,
+        };
+      });
+      rows.sort((a, b) => b.totalTokens - a.totalTokens);
+      return send(res, 200, { ok: true, rows, source: 'openclaw gateway call status' });
+    }
+
     const pauseMatch = url.pathname.match(/^\/agents\/([^/]+)\/pause$/);
     if (req.method === 'POST' && pauseMatch) {
       const agentId = decodeURIComponent(pauseMatch[1]);

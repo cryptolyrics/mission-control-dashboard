@@ -8,6 +8,7 @@ const navItems = [
   { href: "/", label: "Public", icon: "🌐" },
   { href: "/private", label: "Private", icon: "🔒" },
   { href: "/agents", label: "Agents", icon: "🤖" },
+  { href: "/usage", label: "Token Usage", icon: "🪙" },
   { href: "/tasks", label: "Tasks", icon: "📋" },
   { href: "/coach", label: "Coach", icon: "⏰" },
   { href: "/analytics", label: "Analytics", icon: "📊" },
