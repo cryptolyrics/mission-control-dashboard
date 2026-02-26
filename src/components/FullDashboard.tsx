@@ -23,7 +23,7 @@ export default function FullDashboard() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await fetch('/api/agents', { cache: 'no-store' });
+      const res = await fetch('/api/mc/agents', { cache: 'no-store' });
       const data = await res.json().catch(() => null);
       if (data?.ok && Array.isArray(data.agents)) setLiveAgents(data.agents);
     };
