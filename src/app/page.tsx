@@ -1,70 +1,58 @@
-"use client";
-
-import { useMemo, useState } from "react";
-import AgentCard from "@/components/AgentCard";
-import ActivityFeed from "@/components/ActivityFeed";
-import NewTaskModal from "@/components/NewTaskModal";
-import KPICards from "@/components/KPICards";
-import NotificationPanel from "@/components/NotificationPanel";
+import Link from "next/link";
 import { agents } from "@/lib/data";
 
-const mockActivities: Array<{ id: string; agent: string; action: string; timestamp: string; type: "error" | "success" | "warning" | "info" }> = [
-  { id: "1", agent: "Scout", action: "Published discovery brief", timestamp: "1 min ago", type: "success" },
-  { id: "2", agent: "Vlad", action: "Pushed Mission Control v2 UI", timestamp: "3 min ago", type: "info" },
-  { id: "3", agent: "Pete", action: "Running DFS optimizer checks", timestamp: "7 min ago", type: "warning" },
-  { id: "4", agent: "Coach", action: "Prepared goals scaffold", timestamp: "9 min ago", type: "info" },
-  { id: "5", agent: "Coppa", action: "Completed policy sweep", timestamp: "12 min ago", type: "success" },
-];
-
-export default function Dashboard() {
-  const [showNewTaskModal, setShowNewTaskModal] = useState(false);
-  const [activities] = useState(mockActivities);
-
-  const onlineCount = useMemo(() => agents.filter((a) => a.status !== "offline").length, []);
+export default function PublicPage() {
+  const online = agents.filter((a) => a.status !== "offline").length;
+  const offline = agents.length - online;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">Mission Control v2</h1>
-          <p className="text-text-secondary">Dark-grid command center • {onlineCount} active agents</p>
+          <h1 className="text-3xl font-bold">Mission Control</h1>
+          <p className="text-text-secondary">Public status board</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="px-3 py-2 rounded-lg bg-card hover:bg-card-hover transition-colors text-sm" title="Command Palette">
-            ⌘K
-          </button>
-          <button className="p-2 rounded-lg bg-card hover:bg-card-hover transition-colors" title="Refresh">
-            🔄
-          </button>
-          <button
-            onClick={() => setShowNewTaskModal(true)}
-            className="px-4 py-2 bg-primary text-background font-medium rounded-full hover:opacity-90 transition-opacity"
-          >
-            + New Task
-          </button>
-        </div>
+        <Link href="/private" className="px-4 py-2 rounded-lg bg-primary text-background font-medium hover:opacity-90">
+          Private Access
+        </Link>
       </div>
 
-      <KPICards />
-
-      <section>
-        <h2 className="text-lg font-semibold mb-4">Agent Status Grid</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-          {agents.map((agent) => (
-            <AgentCard key={agent.id} agent={agent} />
-          ))}
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-card rounded-xl border border-white/10 p-4">
+          <p className="text-xs text-text-secondary">Total Agents</p>
+          <p className="text-2xl font-bold mt-2">{agents.length}</p>
+        </div>
+        <div className="bg-card rounded-xl border border-white/10 p-4">
+          <p className="text-xs text-text-secondary">Online</p>
+          <p className="text-2xl font-bold mt-2 text-success">{online}</p>
+        </div>
+        <div className="bg-card rounded-xl border border-white/10 p-4">
+          <p className="text-xs text-text-secondary">Offline</p>
+          <p className="text-2xl font-bold mt-2 text-error">{offline}</p>
+        </div>
+        <div className="bg-card rounded-xl border border-white/10 p-4">
+          <p className="text-xs text-text-secondary">Uptime</p>
+          <p className="text-2xl font-bold mt-2 text-primary">99.4%</p>
         </div>
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="lg:col-span-2">
-          <h2 className="text-lg font-semibold mb-4">Live Activity</h2>
-          <ActivityFeed activities={activities} />
-        </section>
-        <NotificationPanel />
-      </div>
-
-      {showNewTaskModal && <NewTaskModal onClose={() => setShowNewTaskModal(false)} />}
+      <section className="bg-card rounded-xl border border-white/10 p-5">
+        <h2 className="text-lg font-semibold mb-4">Agent Network Status</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {agents.map((a) => (
+            <div key={a.id} className="rounded-lg border border-white/10 p-3 bg-background/40 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span>{a.avatar}</span>
+                <span className="font-medium">{a.name}</span>
+              </div>
+              <span className={`text-xs px-2 py-1 rounded-full ${a.status === "offline" ? "bg-error/20 text-error" : "bg-success/20 text-success"}`}>
+                {a.status === "offline" ? "Offline" : "Online"}
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className="text-xs text-text-secondary mt-4">Public view intentionally hides tasks, logs, models, and controls.</p>
+      </section>
     </div>
   );
 }
