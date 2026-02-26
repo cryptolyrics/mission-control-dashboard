@@ -14,16 +14,25 @@ export function expectedPasswordHash() {
   return process.env.PRIVATE_DASH_PASSWORD_HASH || "";
 }
 
+export function expectedPasswordPlain() {
+  return process.env.PRIVATE_DASH_PASSWORD || "";
+}
+
 export function expectedToken() {
   return process.env.PRIVATE_DASH_SESSION_TOKEN || process.env.PRIVATE_DASH_SECRET || "dev-session-token";
 }
 
 export async function isValidLogin(user: string, password: string) {
-  const hash = expectedPasswordHash();
-  if (!hash) return false;
   const userOk = safeEqual(user || "", expectedUser());
   if (!userOk) return false;
-  return bcrypt.compare(password || "", hash);
+
+  const hash = expectedPasswordHash();
+  if (hash) return bcrypt.compare(password || "", hash);
+
+  const plain = expectedPasswordPlain();
+  if (plain) return safeEqual(password || "", plain);
+
+  return false;
 }
 
 export function isValidToken(token?: string) {
