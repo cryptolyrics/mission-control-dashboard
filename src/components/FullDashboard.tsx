@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AgentCard from "@/components/AgentCard";
 import ActivityFeed from "@/components/ActivityFeed";
 import NewTaskModal from "@/components/NewTaskModal";
@@ -19,7 +19,31 @@ const mockActivities: Array<{ id: string; agent: string; action: string; timesta
 export default function FullDashboard() {
   const [showNewTaskModal, setShowNewTaskModal] = useState(false);
   const [activities] = useState(mockActivities);
-  const onlineCount = useMemo(() => agents.filter((a) => a.status !== "offline").length, []);
+  const [liveAgents, setLiveAgents] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      const res = await fetch('/api/agents', { cache: 'no-store' });
+      const data = await res.json().catch(() => null);
+      if (data?.ok && Array.isArray(data.agents)) setLiveAgents(data.agents);
+    };
+    load();
+    const t = setInterval(load, 5000);
+    return () => clearInterval(t);
+  }, []);
+
+  const viewAgents = useMemo(() => {
+    if (!liveAgents) return agents;
+    const map = new Map(liveAgents.map((a) => [a.id, a]));
+    return agents.map((a) => {
+      const l = map.get(a.id);
+      if (!l) return a;
+      const status: "online" | "busy" | "offline" = l.status === 'paused' ? 'offline' : l.status === 'idle' ? 'busy' : 'online';
+      return { ...a, status };
+    });
+  }, [liveAgents]);
+
+  const onlineCount = useMemo(() => viewAgents.filter((a) => a.status !== "offline").length, [viewAgents]);
 
   return (
     <div className="space-y-6">
@@ -40,7 +64,7 @@ export default function FullDashboard() {
       <section>
         <h2 className="text-lg font-semibold mb-4">Agent Status Grid</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-          {agents.map((agent) => (
+          {viewAgents.map((agent) => (
             <AgentCard key={agent.id} agent={agent} />
           ))}
         </div>
