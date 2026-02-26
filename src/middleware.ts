@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const AUTH_COOKIE = "mc_priv";
-const PROTECTED_PAGES = ["/private", "/agents", "/tasks", "/coach", "/analytics", "/settings"];
+const PROTECTED_PAGES = []; // ["/private", "/agents", "/tasks", "/coach", "/analytics", "/settings"];
 
 function needsPageAuth(pathname: string) {
   return PROTECTED_PAGES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
