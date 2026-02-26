@@ -1,28 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
+import { AUTH_COOKIE, isValidToken } from "@/lib/auth";
+
+const PROTECTED = ["/private", "/agents", "/tasks", "/coach", "/analytics", "/settings"];
+
+function needsAuth(pathname: string) {
+  return PROTECTED.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
 
 export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, search } = req.nextUrl;
 
-  if (!pathname.startsWith("/private")) return NextResponse.next();
+  if (!needsAuth(pathname)) return NextResponse.next();
 
-  const auth = req.headers.get("authorization");
-  const expectedUser = process.env.PRIVATE_DASH_USER || "admin";
-  const expectedPass = process.env.PRIVATE_DASH_PASSWORD || "changeme";
+  const token = req.cookies.get(AUTH_COOKIE)?.value;
+  if (isValidToken(token)) return NextResponse.next();
 
-  if (auth?.startsWith("Basic ")) {
-    const decoded = atob(auth.slice(6));
-    const [user, pass] = decoded.split(":");
-    if (user === expectedUser && pass === expectedPass) {
-      return NextResponse.next();
-    }
-  }
-
-  return new NextResponse("Authentication required", {
-    status: 401,
-    headers: { "WWW-Authenticate": 'Basic realm="Private Mission Control"' },
-  });
+  const url = req.nextUrl.clone();
+  url.pathname = "/login";
+  url.search = `next=${encodeURIComponent(pathname + search)}`;
+  return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: ["/private/:path*"],
+  matcher: ["/private/:path*", "/agents/:path*", "/tasks/:path*", "/coach/:path*", "/analytics/:path*", "/settings/:path*"],
 };

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import LogoutButton from "@/components/LogoutButton";
 
 const navItems = [
   { href: "/", label: "Public", icon: "🌐" },
@@ -18,9 +19,12 @@ export default function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-60 bg-background border-r border-white/5 flex flex-col">
-      <div className="p-6 border-b border-white/5">
-        <h1 className="text-xl font-bold text-primary">Mission Control</h1>
-        <p className="text-xs text-text-secondary mt-1">Elevate Studios</p>
+      <div className="p-6 border-b border-white/5 flex items-start justify-between gap-2">
+        <div>
+          <h1 className="text-xl font-bold text-primary">Mission Control</h1>
+          <p className="text-xs text-text-secondary mt-1">Elevate Studios</p>
+        </div>
+        <LogoutButton />
       </div>
 
       <nav className="flex-1 p-4">
