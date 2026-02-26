@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AUTH_COOKIE, isValidToken } from "@/lib/auth";
 
+const AUTH_COOKIE = "mc_priv";
 const PROTECTED_PAGES = ["/private", "/agents", "/tasks", "/coach", "/analytics", "/settings"];
 
 function needsPageAuth(pathname: string) {
@@ -13,6 +13,10 @@ function needsApiAuth(pathname: string) {
   return true;
 }
 
+function expectedToken() {
+  return process.env.PRIVATE_DASH_SESSION_TOKEN || process.env.PRIVATE_DASH_SECRET || "dev-session-token";
+}
+
 export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
@@ -21,7 +25,7 @@ export function middleware(req: NextRequest) {
   }
 
   const token = req.cookies.get(AUTH_COOKIE)?.value;
-  if (isValidToken(token)) return NextResponse.next();
+  if (token && token === expectedToken()) return NextResponse.next();
 
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });

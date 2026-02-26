@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { AUTH_COOKIE, expectedToken, isValidLogin } from "@/lib/auth";
 
+export const runtime = "nodejs";
+
 type Attempt = { count: number; resetAt: number };
 const attempts = new Map<string, Attempt>();
 const WINDOW_MS = 5 * 60 * 1000;

@@ -1,13 +1,9 @@
-import crypto from "crypto";
 import bcrypt from "bcryptjs";
 
 export const AUTH_COOKIE = "mc_priv";
 
 function safeEqual(a: string, b: string) {
-  const aBuf = Buffer.from(a);
-  const bBuf = Buffer.from(b);
-  if (aBuf.length !== bBuf.length) return false;
-  return crypto.timingSafeEqual(aBuf, bBuf);
+  return a.length === b.length && a === b;
 }
 
 export function expectedUser() {
@@ -19,8 +15,7 @@ export function expectedPasswordHash() {
 }
 
 export function expectedToken() {
-  const secret = process.env.PRIVATE_DASH_SECRET || process.env.PRIVATE_DASH_PASSWORD_HASH || "";
-  return crypto.createHash("sha256").update(`mc:${secret}`).digest("hex");
+  return process.env.PRIVATE_DASH_SESSION_TOKEN || process.env.PRIVATE_DASH_SECRET || "dev-session-token";
 }
 
 export async function isValidLogin(user: string, password: string) {
