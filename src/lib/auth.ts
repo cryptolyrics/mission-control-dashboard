@@ -6,16 +6,25 @@ function safeEqual(a: string, b: string) {
   return a.length === b.length && a === b;
 }
 
+function cleanEnv(v?: string) {
+  if (!v) return "";
+  const trimmed = v.trim();
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
 export function expectedUser() {
-  return process.env.PRIVATE_DASH_USER || "admin";
+  return cleanEnv(process.env.PRIVATE_DASH_USER) || "admin";
 }
 
 export function expectedPasswordHash() {
-  return process.env.PRIVATE_DASH_PASSWORD_HASH || "";
+  return cleanEnv(process.env.PRIVATE_DASH_PASSWORD_HASH);
 }
 
 export function expectedPasswordPlain() {
-  return process.env.PRIVATE_DASH_PASSWORD || "";
+  return cleanEnv(process.env.PRIVATE_DASH_PASSWORD);
 }
 
 export function expectedToken() {
@@ -23,14 +32,21 @@ export function expectedToken() {
 }
 
 export async function isValidLogin(user: string, password: string) {
-  const userOk = safeEqual(user || "", expectedUser());
+  const userOk = safeEqual((user || "").trim(), expectedUser());
   if (!userOk) return false;
 
+  const incoming = (password || "").trim();
   const hash = expectedPasswordHash();
-  if (hash) return bcrypt.compare(password || "", hash);
+  if (hash) {
+    // If hash env was accidentally set to plain text, allow comparison for recovery.
+    if (!hash.startsWith("$2a$") && !hash.startsWith("$2b$") && !hash.startsWith("$2y$")) {
+      return safeEqual(incoming, hash);
+    }
+    return bcrypt.compare(incoming, hash);
+  }
 
   const plain = expectedPasswordPlain();
-  if (plain) return safeEqual(password || "", plain);
+  if (plain) return safeEqual(incoming, plain);
 
   return false;
 }
