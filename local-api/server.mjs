@@ -67,6 +67,32 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // /v1/logs/:agentId
+  if (req.method === 'GET' && url.pathname.startsWith('/v1/logs/')) {
+    const agentId = url.pathname.split('/v1/logs/')[1];
+    try {
+      const logs = await fetchAgentLogs(agentId);
+      return send(res, 200, { ok: true, logs });
+    } catch (e) {
+      return send(res, 500, { ok: false, error: String(e) });
+    }
+  }
+
+  // /v1/runs/execute (POST)
+  if (req.method === 'POST' && url.pathname === '/v1/runs/execute') {
+    let body = '';
+    for await (const chunk of req) {
+      body += chunk;
+    }
+    try {
+      const { agentId, command } = JSON.parse(body);
+      const result = await executeRun(agentId, command);
+      return send(res, 200, result);
+    } catch (e) {
+      return send(res, 500, { ok: false, error: String(e) });
+    }
+  }
+
   // /status
   if (req.method === 'GET' && url.pathname === '/status') {
     return send(res, 200, { ok: true, note: 'stub' });
@@ -75,6 +101,55 @@ const server = http.createServer(async (req, res) => {
   // 404
   send(res, 404, { ok: false, error: 'not found' });
 });
+
+async function fetchAgentLogs(agentId) {
+  // Try to read from workspace logs
+  const workspaceRoot = join(process.env.HOME || '/Users/jjbot', '.openclaw');
+  const logPaths = [
+    join(workspaceRoot, `workspace-${agentId}`, 'logs', 'memory'),
+    join(workspaceRoot, `workspace-${agentId}`, 'memory'),
+  ];
+  
+  const logs = [];
+  const fs = await import('fs');
+  
+  for (const logPath of logPaths) {
+    if (existsSync(logPath)) {
+      try {
+        const files = fs.readdirSync(logPath).filter(f => f.endsWith('.md'));
+        // Get last 20 files
+        const recentFiles = files.sort().slice(-20);
+        for (const file of recentFiles) {
+          const content = fs.readFileSync(join(logPath, file), 'utf-8');
+          const lines = content.split('\n').slice(0, 5); // First 5 lines
+          logs.push(`[${file}] ${lines.join(' ').substring(0, 100)}`);
+        }
+      } catch (e) {
+        // Ignore errors reading logs
+      }
+    }
+  }
+  
+  if (logs.length === 0) {
+    logs.push(`[${new Date().toISOString()}] Agent ${agentId} is active`);
+    logs.push(`[${new Date().toISOString()}] No detailed logs available yet`);
+  }
+  
+  return logs;
+}
+
+async function executeRun(agentId, command) {
+  // For now, simulate the action
+  console.log(`Execute: agent=${agentId} command=${command}`);
+  
+  if (command === 'pause') {
+    return { ok: true, message: `Agent ${agentId} paused` };
+  } else if (command === 'resume') {
+    return { ok: true, message: `Agent ${agentId} resumed` };
+  } else {
+    return { ok: false, error: `Unknown command: ${command}` };
+  }
+}
 
 async function fetchAgents() {
   // Try gateway

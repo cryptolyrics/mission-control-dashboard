@@ -21,14 +21,15 @@ export default function FullDashboard() {
   const [activities] = useState(mockActivities);
   const [liveAgents, setLiveAgents] = useState<any[] | null>(null);
 
+  const loadAgents = async () => {
+    const res = await fetch('/api/agents', { cache: 'no-store' });
+    const data = await res.json().catch(() => null);
+    if (data?.ok && Array.isArray(data.agents)) setLiveAgents(data.agents);
+  };
+
   useEffect(() => {
-    const load = async () => {
-      const res = await fetch('/api/mc/agents', { cache: 'no-store' });
-      const data = await res.json().catch(() => null);
-      if (data?.ok && Array.isArray(data.agents)) setLiveAgents(data.agents);
-    };
-    load();
-    const t = setInterval(load, 5000);
+    loadAgents();
+    const t = setInterval(loadAgents, 5000);
     return () => clearInterval(t);
   }, []);
 
@@ -65,7 +66,7 @@ export default function FullDashboard() {
         <h2 className="text-lg font-semibold mb-4">Agent Status Grid</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           {viewAgents.map((agent) => (
-            <AgentCard key={agent.id} agent={agent} />
+            <AgentCard key={agent.id} agent={agent} onRefresh={loadAgents} />
           ))}
         </div>
       </section>

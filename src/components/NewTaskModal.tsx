@@ -11,10 +11,38 @@ export default function NewTaskModal({ onClose }: NewTaskModalProps) {
   const [description, setDescription] = useState("");
   const [step, setStep] = useState<"form" | "ai-questions">("form");
 
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (title.trim()) {
       setStep("ai-questions");
+    }
+  };
+
+  const handleAssign = async () => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/mc/runs/execute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          command: "task",
+          payload: { title, description },
+        }),
+      });
+      const data = await res.json().catch(() => ({ ok: false }));
+      if (!data.ok) {
+        setError(data.error || "Failed to trigger run");
+      } else {
+        onClose();
+      }
+    } catch (e) {
+      setError("Failed to connect");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -58,6 +86,11 @@ export default function NewTaskModal({ onClose }: NewTaskModalProps) {
                 className="w-full px-4 py-3 bg-background border border-white/10 rounded-lg focus:outline-none focus:border-primary transition-colors resize-none"
               />
             </div>
+            {error && (
+              <div className="px-3 py-2 bg-error/20 text-error text-sm rounded">
+                {error}
+              </div>
+            )}
             <div className="flex gap-3 pt-2">
               <button
                 type="button"
@@ -87,6 +120,11 @@ export default function NewTaskModal({ onClose }: NewTaskModalProps) {
                 <li>Do you have any specific sources or tools to use?</li>
               </ol>
             </div>
+            {error && (
+              <div className="px-3 py-2 bg-error/20 text-error text-sm rounded">
+                {error}
+              </div>
+            )}
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setStep("form")}
@@ -95,10 +133,11 @@ export default function NewTaskModal({ onClose }: NewTaskModalProps) {
                 ← Back
               </button>
               <button
-                onClick={onClose}
-                className="flex-1 px-4 py-3 bg-success text-background font-medium rounded-lg hover:opacity-90 transition-opacity"
+                onClick={handleAssign}
+                disabled={submitting}
+                className="flex-1 px-4 py-3 bg-success text-background font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                Assign Best Agent
+                {submitting ? "Assigning..." : "Assign Best Agent"}
               </button>
             </div>
           </div>

@@ -1,7 +1,7 @@
-import { relayFetch } from "@/lib/relay";
+import { mcFetch } from "@/lib/mcApi";
 
 export async function GET(_: Request, { params }: { params: { id: string } }) {
-  const res = await relayFetch(`/agents/${encodeURIComponent(params.id)}/logs`);
-  const data = await res.json().catch(() => ({ ok: false, error: "bad_relay_response" }));
+  const res = await mcFetch(`/logs/${encodeURIComponent(params.id)}`);
+  const data = await res.json().catch(() => ({ ok: false, error: "bad_upstream_response" }));
   return Response.json(data, { status: res.status });
 }
