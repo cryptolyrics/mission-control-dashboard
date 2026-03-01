@@ -25,17 +25,18 @@ export default function NewTaskModal({ onClose }: NewTaskModalProps) {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch("/api/mc/runs/execute", {
+      const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          command: "task",
-          payload: { title, description },
+          text: description.trim()
+            ? `${title.trim()} — ${description.trim()}`
+            : title.trim(),
         }),
       });
       const data = await res.json().catch(() => ({ ok: false }));
       if (!data.ok) {
-        setError(data.error || "Failed to trigger run");
+        setError(data.error || "Failed to assign task");
       } else {
         onClose();
       }
