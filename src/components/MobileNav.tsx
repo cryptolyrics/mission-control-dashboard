@@ -5,14 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/", label: "Public", icon: "🌐" },
-  { href: "/private", label: "Private", icon: "🔒" },
-  { href: "/agents", label: "Agents", icon: "🤖" },
-  { href: "/usage", label: "Token Usage", icon: "🪙" },
-  { href: "/tasks", label: "Tasks", icon: "📋" },
-  { href: "/coach", label: "Coach", icon: "⏰" },
-  { href: "/analytics", label: "Analytics", icon: "📊" },
-  { href: "/settings", label: "Settings", icon: "⚙️" },
+  { href: "/pete", label: "Pete Page", icon: "📈" },
+  { href: "/agents", label: "Agents Docs", icon: "🤖" },
 ];
 
 export default function MobileNav() {
@@ -58,8 +52,7 @@ export default function MobileNav() {
           </nav>
           <div className="p-4 border-t border-white/5">
             <p className="text-xs text-text-secondary">
-              Active: <span className="text-success">6</span> | Tasks:{" "}
-              <span className="text-warning">12</span>
+              MVP: <span className="text-primary">Pete + Agents Docs</span>
             </p>
           </div>
         </div>

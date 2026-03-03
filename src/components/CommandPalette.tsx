@@ -24,10 +24,8 @@ export default function CommandPalette() {
 
   const commands = useMemo<Command[]>(
     () => [
-      { label: "Go to Dashboard", hint: "⌘1", action: () => router.push("/") },
-      { label: "Go to Agents", hint: "⌘2", action: () => router.push("/agents") },
-      { label: "Go to Tasks", hint: "⌘3", action: () => router.push("/tasks") },
-      { label: "Go to Coach", hint: "⌘4", action: () => router.push("/coach") },
+      { label: "Go to Pete Page", hint: "⌘1", action: () => router.push("/pete") },
+      { label: "Go to Agents Docs", hint: "⌘2", action: () => router.push("/agents") },
       { label: "Close palette", hint: "Esc", action: () => setOpen(false) },
     ],
     [router]

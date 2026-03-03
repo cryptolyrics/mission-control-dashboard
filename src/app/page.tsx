@@ -1,5 +1,5 @@
-import FullDashboard from "@/components/FullDashboard";
+import { redirect } from "next/navigation";
 
 export default function PublicDashboardPage() {
-  return <FullDashboard />;
+  redirect("/pete");
 }

@@ -5,14 +5,8 @@ import { usePathname } from "next/navigation";
 import LogoutButton from "@/components/LogoutButton";
 
 const navItems = [
-  { href: "/", label: "Public", icon: "🌐" },
-  { href: "/private", label: "Private", icon: "🔒" },
-  { href: "/agents", label: "Agents", icon: "🤖" },
-  { href: "/usage", label: "Token Usage", icon: "🪙" },
-  { href: "/tasks", label: "Tasks", icon: "📋" },
-  { href: "/coach", label: "Coach", icon: "⏰" },
-  { href: "/analytics", label: "Analytics", icon: "📊" },
-  { href: "/settings", label: "Settings", icon: "⚙️" },
+  { href: "/pete", label: "Pete Page", icon: "📈" },
+  { href: "/agents", label: "Agents Docs", icon: "🤖" },
 ];
 
 export default function Sidebar() {
@@ -53,8 +47,8 @@ export default function Sidebar() {
 
       <div className="p-4 border-t border-white/5">
         <div className="text-xs text-text-secondary space-y-1">
-          <p>Active Agents: <span className="text-success">6</span></p>
-          <p>Running Tasks: <span className="text-warning">12</span></p>
+          <p>MVP Scope: <span className="text-primary">Pete + Agents Docs</span></p>
+          <p>Runtime: <span className="text-success">pete-engine</span></p>
           <p className="pt-2 border-t border-white/5 mt-2">⌘K Command Palette</p>
         </div>
       </div>
