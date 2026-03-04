@@ -43,19 +43,7 @@ export async function POST(req: Request) {
   const password = body?.password || "";
 
   if (!(await isValidLogin(user, password))) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Invalid credentials",
-        hint:
-          process.env.PRIVATE_DASH_PASSWORD_HASH
-            ? "Using PRIVATE_DASH_PASSWORD_HASH"
-            : process.env.PRIVATE_DASH_PASSWORD
-              ? "Using PRIVATE_DASH_PASSWORD"
-              : "No password env configured",
-      },
-      { status: 401 }
-    );
+    return NextResponse.json({ ok: false, error: "Invalid credentials" }, { status: 401 });
   }
 
   attempts.delete(ip);

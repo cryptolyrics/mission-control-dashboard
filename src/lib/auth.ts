@@ -27,8 +27,14 @@ export function expectedPasswordPlain() {
   return cleanEnv(process.env.PRIVATE_DASH_PASSWORD);
 }
 
+const SESSION_TOKEN = cleanEnv(process.env.PRIVATE_DASH_SESSION_TOKEN || process.env.PRIVATE_DASH_SECRET);
+const REQUIRE_SESSION_TOKEN = process.env.NODE_ENV !== "test";
+if (REQUIRE_SESSION_TOKEN && !SESSION_TOKEN) {
+  throw new Error("Missing PRIVATE_DASH_SESSION_TOKEN or PRIVATE_DASH_SECRET");
+}
+
 export function expectedToken() {
-  return process.env.PRIVATE_DASH_SESSION_TOKEN || process.env.PRIVATE_DASH_SECRET || "dev-session-token";
+  return SESSION_TOKEN;
 }
 
 export async function isValidLogin(user: string, password: string) {
