@@ -1,0 +1,3 @@
+[submodule "canon/elevate-flow"]
+	path = canon/elevate-flow
+	url = https://github.com/cryptolyrics/Elevate-Flow.git
